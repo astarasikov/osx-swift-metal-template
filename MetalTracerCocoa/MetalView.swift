@@ -191,9 +191,6 @@ class MetalView : NSView {
         }
         
         mMvpMatrixData[0] += 10.0
-        //mMvpMatrixBuffer = mDevice.newBufferWithBytes(mMvpMatrixData,
-        //    length: sizeof(Float32) * mMvpMatrixData.count,
-        //    options: MTLResourceOptions.OptionStorageModeManaged)
 
         let cmdBuf : MTLCommandBuffer = mCommandQueue.commandBuffer()
         let encoder : MTLRenderCommandEncoder = cmdBuf.renderCommandEncoderWithDescriptor(mRenderPassDescriptor)
@@ -210,6 +207,12 @@ class MetalView : NSView {
         cmdBuf.addCompletedHandler(bufHandler)
         cmdBuf.commit()
         //cmdBuf.waitUntilCompleted()
+        
+        dispatch_async(dispatch_get_main_queue(),
+            {
+                self.needsDisplay = true
+            }
+        )
         
         NSLog("-render")
     }
