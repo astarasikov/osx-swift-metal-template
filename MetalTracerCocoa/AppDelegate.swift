@@ -13,7 +13,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             styleMask: NSTitledWindowMask|NSClosableWindowMask|NSResizableWindowMask,
             backing: NSBackingStoreType.Buffered,
             `defer`: false)
-        mMetalView = MetalView(frame: mWindow.contentView.frame)
+        mMetalView = MetalView(frame: (mWindow?.contentView?.frame)!)
     }
 
     func applicationDidFinishLaunching(aNotification: NSNotification) {

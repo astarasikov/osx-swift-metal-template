@@ -5,9 +5,9 @@ import QuartzCore
 var gMetalView : MetalView?
 
 func displayLinkCallback(
-    CVDisplayLink, UnsafePointer<CVTimeStamp>,
-    UnsafePointer<CVTimeStamp>, CVOptionFlags,
-    UnsafeMutablePointer<CVOptionFlags>,
+    _:CVDisplayLink, _:UnsafePointer<CVTimeStamp>,
+    _:UnsafePointer<CVTimeStamp>, _:CVOptionFlags,
+    _:UnsafeMutablePointer<CVOptionFlags>,
     userPtr: UnsafeMutablePointer<Void>) -> CVReturn
 {
     gMetalView?.render()
@@ -92,6 +92,8 @@ class MetalView : NSView {
                 mipmapped:false)
             desc.textureType = MTLTextureType.Type2D
             desc.sampleCount = 1
+            desc.resourceOptions = MTLResourceOptions.StorageModePrivate;
+            desc.usage = MTLTextureUsage.RenderTarget;
 
             mDepthTexture = mDevice?.newTextureWithDescriptor(desc)
 
@@ -219,7 +221,7 @@ class MetalView : NSView {
 
     func windowResized(notification:NSNotification)
     {
-        NSLog("Resized \(self.window?.contentView.bounds)")
+        NSLog("Resized \(self.window?.contentView?.bounds)")
         NSLog("Layer \(self.layer)")
 
         render()
