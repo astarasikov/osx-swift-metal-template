@@ -206,8 +206,10 @@ class MetalView : NSView {
 
         mRenderEncoder.encode(mDevice!, encoder:encoder)
         cmdBuf.presentDrawable(mCurrentDrawable!)
+        mCurrentDrawable = nil
         cmdBuf.addCompletedHandler(bufHandler)
         cmdBuf.commit()
+
         //cmdBuf.waitUntilCompleted()
         
         dispatch_async(dispatch_get_main_queue(),

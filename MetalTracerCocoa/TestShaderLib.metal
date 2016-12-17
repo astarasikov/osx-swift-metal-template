@@ -31,6 +31,7 @@ constant float3 cameraPosition = float3(1.0, 1.0, 10.0);
 constant float3 sphere1_pos = float3(-0.3, -0.3, 0.0);
 constant float3 sphere2_pos = float3(0.2, 0.2, 0.0);
 constant float3 box1_pos = float3(0.2, 0.6, 0.5);
+constant float3 prism_pos = float3(-0.42, -0.92, 0.0);
 
 struct DepthTestResult {
     float depth;
@@ -50,6 +51,17 @@ static DepthTestResult dist_floor(float3 position) {
     return {
         position.y + 10.0,
         float3(0, sin(2 * position.x * position.y), 0.0)
+    };
+}
+
+static DepthTestResult dist_prism(float3 position,
+                                  float3 prism_pos,
+                                  float2 h)
+{
+    float3 q = abs(position - prism_pos);
+    return {
+        max(q.y - h.y, max(q.x * sqrt(3.0) * 0.5 + q.z * 0.5, q.z) - h.x),
+        float3(0.0, 1.0, 1.0)
     };
 }
 
@@ -94,10 +106,13 @@ static DepthTestResult dist_to_scene(float3 position, float seed) {
     DepthTestResult fl = dist_floor(position);
     
     s2.color = float3(1.0, 1.0, 0.0);
+    
     DepthTestResult box1 = dist_round_box(position, box1_pos, s1_x);
+    DepthTestResult prism1 = dist_prism(position, prism_pos, float2(0.2, 0.3));
     
     DepthTestResult d = obj_union(s1, s2);
     d = obj_union(d, box1);
+    d = obj_union(d, prism1);
     d = obj_union(d, fl);
     
     return d;
@@ -106,9 +121,8 @@ static DepthTestResult dist_to_scene(float3 position, float seed) {
 /*******************************************************************************
  * Ray Marching code
  ******************************************************************************/
-#define NUM_STEPS 20
-
-static constant float maxDepth = 100.0;
+#define NUM_STEPS 80
+static constant float maxDepth = 50.0;
 
 static inline float4 trace(InterShaderData inData)
 {
