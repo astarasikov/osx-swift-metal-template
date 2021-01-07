@@ -135,7 +135,7 @@
 				TargetAttributes = {
 					11D89F231B86862400ABF34A = {
 						CreatedOnToolsVersion = 7.0;
-						LastSwiftMigration = 0810;
+						LastSwiftMigration = 1220;
 					};
 				};
 			};
@@ -304,6 +304,7 @@
 				MTL_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.astarasikov.MetalTracerCocoa;
 				PRODUCT_NAME = MetalRenderCocoa;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -320,6 +321,7 @@
 				MTL_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.astarasikov.MetalTracerCocoa;
 				PRODUCT_NAME = MetalRenderCocoa;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
