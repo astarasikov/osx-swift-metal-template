@@ -2,7 +2,7 @@ import Cocoa
 
 class WindowDelegate : NSObject, NSWindowDelegate
 {
-    func windowWillClose(notification: NSNotification) {
-        NSApplication.sharedApplication().terminate(self)
+    func windowWillClose(_ notification: Notification) {
+        NSApplication.shared.terminate(self)
     }
 }

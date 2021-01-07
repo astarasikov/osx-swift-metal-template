@@ -2,5 +2,5 @@ import Metal
 
 protocol RenderEncoder
 {
-    func encode(device: MTLDevice, encoder: MTLRenderCommandEncoder);
+    func encode(_ device: MTLDevice, encoder: MTLRenderCommandEncoder);
 }

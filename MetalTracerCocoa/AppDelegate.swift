@@ -9,25 +9,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
         mWindowDelegate = WindowDelegate()
         mWindow = NSWindow(
-            contentRect: NSMakeRect(0, 0, 640, 480),
-            styleMask: NSTitledWindowMask|NSClosableWindowMask|NSResizableWindowMask,
-            backing: NSBackingStoreType.Buffered,
-            `defer`: false)
+            contentRect: NSMakeRect(0, 0, 1024, 1024),
+            styleMask:
+                NSWindow.StyleMask.resizable.union(NSWindow.StyleMask.closable.union(NSWindow.StyleMask.titled)),
+            backing: NSWindow.BackingStoreType.buffered,
+            defer: false)
         mMetalView = MetalView(frame: (mWindow?.contentView?.frame)!)
+        print("Init Done")
     }
 
-    func applicationDidFinishLaunching(aNotification: NSNotification) {
+    func applicationDidFinishLaunching(_ aNotification: Notification) {
+        print("applicationDidFinishLaunching")
         mWindow.title = "Metal Test"
         mWindow.delegate = mWindowDelegate
-        mWindow.backgroundColor = NSColor.redColor()
+        mWindow.backgroundColor = NSColor.red
 
         //mWindow.contentView.addSubview(mMetalView)
         mWindow.contentView = mMetalView
         mWindow.center()
         mWindow.makeKeyAndOrderFront(nil)
-    }
-
-    func applicationWillTerminate(aNotification: NSNotification) {
     }
 }
 

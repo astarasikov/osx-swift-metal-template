@@ -8,23 +8,23 @@ func displayLinkCallback(
     _:CVDisplayLink, _:UnsafePointer<CVTimeStamp>,
     _:UnsafePointer<CVTimeStamp>, _:CVOptionFlags,
     _:UnsafeMutablePointer<CVOptionFlags>,
-    userPtr: UnsafeMutablePointer<Void>) -> CVReturn
+    userPtr: UnsafeMutableRawPointer?) -> CVReturn
 {
     gMetalView?.render()
     return kCVReturnSuccess;
 }
 
 class MetalView : NSView {
-    var mDisplayLinkRef : CVDisplayLinkRef?
+    var mDisplayLinkRef : CVDisplayLink?
 
     var mDevice : MTLDevice!
 
-    var mDepthPixelFormat : MTLPixelFormat = MTLPixelFormat.Depth32Float
+    var mDepthPixelFormat : MTLPixelFormat = MTLPixelFormat.depth32Float
     var mDepthStateDescriptor: MTLDepthStencilDescriptor!
     var mDepthTexture : MTLTexture?
     var mDepthState: MTLDepthStencilState!
 
-    var mStencilPixelFormat : MTLPixelFormat = MTLPixelFormat.Invalid
+    var mStencilPixelFormat : MTLPixelFormat = MTLPixelFormat.invalid
     var mStencilTexture : MTLTexture?
 
     var mCommandQueue : MTLCommandQueue!
@@ -42,7 +42,7 @@ class MetalView : NSView {
     var mRenderPipelineDescriptor: MTLRenderPipelineDescriptor!
     var mRenderPassDescriptor:MTLRenderPassDescriptor!
 
-    var mFbPixelFormat : MTLPixelFormat = MTLPixelFormat.BGRA8Unorm
+    var mFbPixelFormat : MTLPixelFormat = MTLPixelFormat.bgra8Unorm
 
     var mCurrentDrawable : CAMetalDrawable?
     var mMetalLayer : CAMetalLayer!
@@ -54,7 +54,7 @@ class MetalView : NSView {
         0.0, 0.0, 0.0, 0.0
     ]
 
-    func isTextureCompatible(tex1:MTLTexture?, tex2:MTLTexture) -> Bool
+    func isTextureCompatible(_ tex1:MTLTexture?, tex2:MTLTexture) -> Bool
     {
         if nil == tex1 {
             return false
@@ -74,64 +74,67 @@ class MetalView : NSView {
         return true
     }
 
-    func setupRenderPassDescriptorForTexture(texture:MTLTexture)
+    func setupRenderPassDescriptorForTexture(_ texture:MTLTexture)
     {
         let colorAttachment = mRenderPassDescriptor.colorAttachments[0]
-        colorAttachment.loadAction = MTLLoadAction.Clear
-        colorAttachment.clearColor = MTLClearColorMake(0.0, 1.0, 0.0, 1.0)
-        colorAttachment.storeAction = MTLStoreAction.Store
-        colorAttachment.texture = texture
+        colorAttachment?.loadAction = MTLLoadAction.clear
+        colorAttachment?.clearColor = MTLClearColorMake(0.0, 1.0, 0.0, 1.0)
+        colorAttachment?.storeAction = MTLStoreAction.store
+        colorAttachment?.texture = texture
 
         if !isTextureCompatible(mDepthTexture, tex2:texture) {
-            if mDepthPixelFormat == MTLPixelFormat.Invalid {
+            if mDepthPixelFormat == MTLPixelFormat.invalid {
                 return
             }
-            let desc = MTLTextureDescriptor.texture2DDescriptorWithPixelFormat(
-                mDepthPixelFormat,
+            let desc = MTLTextureDescriptor.texture2DDescriptor(
+                pixelFormat: mDepthPixelFormat,
                 width:texture.width, height:texture.height,
                 mipmapped:false)
-            desc.textureType = MTLTextureType.Type2D
+            desc.textureType = MTLTextureType.type2D
             desc.sampleCount = 1
-            desc.resourceOptions = MTLResourceOptions.StorageModePrivate;
-            desc.usage = MTLTextureUsage.RenderTarget;
+            desc.resourceOptions = MTLResourceOptions.storageModePrivate;
+            desc.usage = MTLTextureUsage.renderTarget;
 
-            mDepthTexture = mDevice?.newTextureWithDescriptor(desc)
+            mDepthTexture = mDevice?.makeTexture(descriptor: desc)
 
             let depthAttachment = mRenderPassDescriptor.depthAttachment
-            depthAttachment.texture = mDepthTexture
-            depthAttachment.loadAction = MTLLoadAction.Clear
-            depthAttachment.storeAction = MTLStoreAction.DontCare
-            depthAttachment.clearDepth = 1.0
+            depthAttachment?.texture = mDepthTexture
+            depthAttachment?.loadAction = MTLLoadAction.clear
+            depthAttachment?.storeAction = MTLStoreAction.dontCare
+            depthAttachment?.clearDepth = 1.0
         }
         if !isTextureCompatible(mStencilTexture, tex2:texture) {
-            if mStencilPixelFormat == MTLPixelFormat.Invalid {
+            if mStencilPixelFormat == MTLPixelFormat.invalid {
                 return
             }
-            let desc = MTLTextureDescriptor.texture2DDescriptorWithPixelFormat(
-                mStencilPixelFormat,
+            let desc = MTLTextureDescriptor.texture2DDescriptor(
+                pixelFormat: mStencilPixelFormat,
                 width:texture.width, height:texture.height,
                 mipmapped:false)
-            desc.textureType = MTLTextureType.Type2D
+            desc.textureType = MTLTextureType.type2D
             desc.sampleCount = 1
 
-            mStencilTexture = mDevice?.newTextureWithDescriptor(desc)
+            mStencilTexture = mDevice?.makeTexture(descriptor: desc)
 
             let stencilAttachment = mRenderPassDescriptor.stencilAttachment
-            stencilAttachment.texture = mStencilTexture
-            stencilAttachment.loadAction = MTLLoadAction.Clear
-            stencilAttachment.storeAction = MTLStoreAction.DontCare
-            stencilAttachment.clearStencil = 0
+            stencilAttachment?.texture = mStencilTexture
+            stencilAttachment?.loadAction = MTLLoadAction.clear
+            stencilAttachment?.storeAction = MTLStoreAction.dontCare
+            stencilAttachment?.clearStencil = 0
         }
     }
 
     func initMetalViewContents() {
-        self.autoresizingMask = NSAutoresizingMaskOptions.ViewHeightSizable.union(
-            NSAutoresizingMaskOptions.ViewWidthSizable)
+        self.autoresizingMask = NSView.AutoresizingMask.height.union(
+            NSView.AutoresizingMask.width)
 
         self.wantsLayer = true
-        self.layerContentsRedrawPolicy = NSViewLayerContentsRedrawPolicy.OnSetNeedsDisplay
-
+        self.layerContentsRedrawPolicy = NSView.LayerContentsRedrawPolicy.onSetNeedsDisplay
+        
+        //let devices = MTLCopyAllDevices()
+        //mDevice = devices[0]
         mDevice = MTLCreateSystemDefaultDevice()
+        NSLog("Device \(String(describing: mDevice))")
         mRenderPassDescriptor = MTLRenderPassDescriptor()
 
         mMetalLayer = CAMetalLayer()
@@ -141,25 +144,25 @@ class MetalView : NSView {
         mMetalLayer.frame = self.frame
 
         self.layer?.addSublayer(mMetalLayer)
-        NSLog("Layer \(self.layer)")
-        NSLog("mMetalLayer= \(mMetalLayer)")
+        NSLog("Layer \(String(describing: self.layer))")
+        NSLog("mMetalLayer= \(String(describing: mMetalLayer))")
         NSLog("mMetalLayer.frame= \(mMetalLayer.frame)")
 
-        mCommandQueue = mDevice.newCommandQueue()
-        mMvpMatrixBuffer = mDevice.newBufferWithLength(16 * 4,
-            options:MTLResourceOptions.StorageModeManaged)
+        mCommandQueue = mDevice.makeCommandQueue()
+        mMvpMatrixBuffer = mDevice.makeBuffer(length: 16 * 4,
+            options:MTLResourceOptions.storageModeManaged)
         mMvpMatrixBuffer.label = "transform matrix (MVP)"
         //mMvpMatrixBuffer.setPurgeableState(MTLPurgeableState.NonVolatile)
 
         mDepthStateDescriptor = MTLDepthStencilDescriptor()
-        mDepthStateDescriptor.depthCompareFunction = MTLCompareFunction.Always
-        mDepthStateDescriptor.depthWriteEnabled = true
+        mDepthStateDescriptor.depthCompareFunction = MTLCompareFunction.always
+        mDepthStateDescriptor.isDepthWriteEnabled = true
 
-        mDepthState = mDevice.newDepthStencilStateWithDescriptor(mDepthStateDescriptor!)
+        mDepthState = mDevice.makeDepthStencilState(descriptor: mDepthStateDescriptor!)
 
-        mShaderLibrary = mDevice.newDefaultLibrary()
-        mVertexFunc = mShaderLibrary.newFunctionWithName("testShaderVertex")
-        mFragmentFunc = mShaderLibrary.newFunctionWithName("testShaderFragment")
+        mShaderLibrary = mDevice.makeDefaultLibrary()
+        mVertexFunc = mShaderLibrary.makeFunction(name: "testShaderVertex")
+        mFragmentFunc = mShaderLibrary.makeFunction(name: "testShaderFragment")
 
         mRenderPipelineDescriptor = MTLRenderPipelineDescriptor()
         mRenderPipelineDescriptor.vertexFunction = mVertexFunc
@@ -169,17 +172,17 @@ class MetalView : NSView {
         mRenderPipelineDescriptor.colorAttachments[0].pixelFormat = mFbPixelFormat
         mRenderPipelineDescriptor.sampleCount = 1
         mRenderPipelineDescriptor.label = "Test Pipeline"
-        mRenderPipelineDescriptor.rasterizationEnabled = true
+        mRenderPipelineDescriptor.isRasterizationEnabled = true
 
-        mRenderPipelineState = try! mDevice.newRenderPipelineStateWithDescriptor(mRenderPipelineDescriptor!)
+        mRenderPipelineState = try! mDevice.makeRenderPipelineState(descriptor: mRenderPipelineDescriptor!)
     }
 
-    func bufHandler(buf:MTLCommandBuffer) -> Void {
+    func bufHandler(_ buf:MTLCommandBuffer) -> Void {
         //NSLog("finished command buffer \(buf)")
     }
     
     func updateUniforms() {
-        mMvpMatrixBuffer.setPurgeableState(MTLPurgeableState.Empty)
+        mMvpMatrixBuffer.setPurgeableState(MTLPurgeableState.empty)
     }
 
     func render() {
@@ -194,26 +197,25 @@ class MetalView : NSView {
         
         mMvpMatrixData[0] += 10.0
 
-        let cmdBuf : MTLCommandBuffer = mCommandQueue.commandBuffer()
-        let encoder : MTLRenderCommandEncoder = cmdBuf.renderCommandEncoderWithDescriptor(mRenderPassDescriptor)
+        let cmdBuf : MTLCommandBuffer = mCommandQueue.makeCommandBuffer()!
+        let encoder : MTLRenderCommandEncoder = cmdBuf.makeRenderCommandEncoder(descriptor: mRenderPassDescriptor)!
 
         encoder.setDepthStencilState(mDepthState)
         encoder.setRenderPipelineState(mRenderPipelineState)
-        encoder.setFrontFacingWinding(MTLWinding.CounterClockwise)
-        encoder.setVertexBuffer(mMvpMatrixBuffer, offset: 0, atIndex: 1)
-        memcpy(mMvpMatrixBuffer.contents(), &mMvpMatrixData[0], sizeof(Float32))
-        mMvpMatrixBuffer.didModifyRange(NSMakeRange(0, 16 * 4))
+        encoder.setFrontFacing(MTLWinding.counterClockwise)
+        encoder.setVertexBuffer(mMvpMatrixBuffer, offset: 0, index: 1)
+        memcpy(mMvpMatrixBuffer.contents(), &mMvpMatrixData[0], MemoryLayout<Float32>.size)
+        mMvpMatrixBuffer.didModifyRange(Range(uncheckedBounds: (lower: 0, upper: 16 * 4)))
 
         mRenderEncoder.encode(mDevice!, encoder:encoder)
-        cmdBuf.presentDrawable(mCurrentDrawable!)
+        cmdBuf.present(mCurrentDrawable!)
         mCurrentDrawable = nil
         cmdBuf.addCompletedHandler(bufHandler)
         cmdBuf.commit()
 
         //cmdBuf.waitUntilCompleted()
         
-        dispatch_async(dispatch_get_main_queue(),
-            {
+        DispatchQueue.main.async(execute: {
                 self.needsDisplay = true
             }
         )
@@ -221,18 +223,19 @@ class MetalView : NSView {
         NSLog("-render")
     }
 
-    func windowResized(notification:NSNotification)
+    @objc func windowResized(_ notification:Notification)
     {
-        NSLog("Resized \(self.window?.contentView?.bounds)")
-        NSLog("Layer \(self.layer)")
+        NSLog("Resized \(String(describing: self.window?.contentView?.bounds))")
+        NSLog("Layer \(String(describing: self.layer))")
 
         render()
     }
 
     override func viewDidMoveToWindow() {
-        NSNotificationCenter.defaultCenter().addObserver(self,
-            selector: "windowResized:",
-            name: NSWindowDidResizeNotification, object: self.window)
+        /*
+        NotificationCenter.default.addObserver(self,
+            selector: #selector(MetalView.windowResized(_:)),
+            name: NSNotification.Name.NSWindow.didResizeNotification, object: self.window)*/
     }
 
     func registerDisplayLinkCallback() {
@@ -245,7 +248,7 @@ class MetalView : NSView {
     deinit {
         CVDisplayLinkStop(mDisplayLinkRef!)
         mDisplayLinkRef = nil
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
 
     override init(frame:NSRect) {
@@ -255,12 +258,12 @@ class MetalView : NSView {
         //clear the view. the view background color is different
         //from the window background color so that we can inspect visually
         //and make sure it fills the whole window
-        self.layer?.backgroundColor = CGColorCreateGenericRGB(0.0, 0.0, 0.0, 1.0)
+        self.layer?.backgroundColor = CGColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
         registerDisplayLinkCallback()
     }
 
     convenience init() {
-        self.init(frame:CGRectZero)
+        self.init(frame:CGRect.zero)
     }
 
     required init(coder:NSCoder) {

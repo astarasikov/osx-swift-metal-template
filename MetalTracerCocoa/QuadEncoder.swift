@@ -15,23 +15,23 @@ class QuadEncoder : RenderEncoder
         1.0, -1.0, 0.0, 1.0,
     ]
 
-    func encodePrimitiveData(device: MTLDevice, encoder:MTLRenderCommandEncoder)
+    func encodePrimitiveData(_ device: MTLDevice, encoder:MTLRenderCommandEncoder)
     {
         if nil == mVertexBuffer {
-            let bufLen = mVerticesData.count * sizeofValue(mVerticesData[0])
-            mVertexBuffer = device.newBufferWithBytes(&mVerticesData,
+            let bufLen = mVerticesData.count * MemoryLayout.size(ofValue: mVerticesData[0])
+            mVertexBuffer = device.makeBuffer(bytes: &mVerticesData,
                 length: bufLen,
                 options: MTLResourceOptions())
         }
-        encoder.setVertexBuffer(mVertexBuffer, offset: 0, atIndex: 0)
+        encoder.setVertexBuffer(mVertexBuffer, offset: 0, index: 0)
     }
 
-    func encode(device: MTLDevice, encoder:MTLRenderCommandEncoder)
+    func encode(_ device: MTLDevice, encoder:MTLRenderCommandEncoder)
     {
         encoder.pushDebugGroup("test quad");
 
         encodePrimitiveData(device, encoder:encoder)
-        encoder.drawPrimitives(MTLPrimitiveType.Triangle,
+        encoder.drawPrimitives(type: MTLPrimitiveType.triangle,
             vertexStart: 0,
             vertexCount: 6,
             instanceCount: 1)

@@ -1,10 +1,11 @@
 import Foundation
 import Cocoa
 
-func main() {
-    let app = NSApplication.sharedApplication()
+func main() -> Int32 {
+    let app = NSApplication.shared
     let delegate = AppDelegate()
     app.delegate = delegate
-    app.run()
+    //app.run()
+    return NSApplicationMain(CommandLine.argc, CommandLine.unsafeArgv)
 }
 main()
